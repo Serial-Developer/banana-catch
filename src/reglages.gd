@@ -43,6 +43,8 @@ extends Resource
 @export_group("Effets")
 ## Gel d'image sur les impacts (toujours ignoré sans affichage).
 @export var gel_image: bool = true
+## Volume global des effets sonores (0 à 1).
+@export_range(0.0, 1.0) var volume: float = 0.8
 
 @export_group("Singe")
 @export var singe_vitesse: float = 320.0

@@ -77,6 +77,10 @@ func _ready() -> void:
 	effets.partie = self
 	effets.camera = _camera
 	_monde.add_child(effets)
+	var sons := Sons.new()
+	sons.partie = self
+	sons.reglages = reglages
+	add_child(sons)
 
 
 # --- État observable -------------------------------------------------------
