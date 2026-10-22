@@ -31,7 +31,10 @@ func _exit_tree() -> void:
 
 
 ## Joue un son de la banque sur une voix libre (sinon la plus ancienne est réutilisée).
+## Sans affichage (tests), aucun son n'est joué : le pilote audio factice ne libère jamais les lectures.
 func jouer(nom: String, gain_db: float = 0.0, hauteur: float = 1.0) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
 	var lecteur: AudioStreamPlayer = _voix[0]
 	for v: AudioStreamPlayer in _voix:
 		if not v.playing:

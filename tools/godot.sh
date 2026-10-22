@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
-# Usage : ./tools/godot.sh jeu | tests | editeur | verifier-demarrage | capture <dossier>
-# Le binaire Godot 4.7.2 est pris dans ffta-remake par défaut ; GODOT_BIN permet d'en indiquer un autre.
+# Usage : ./tools/godot.sh jeu | tests | editeur | verifier-demarrage | capture <dossier> | export-web
+# Binaire Godot 4.7.2 : GODOT_BIN s'il est défini, sinon celui de ffta-remake, sinon « godot » du PATH,
+# sinon l'application installée dans /Applications.
 set -euo pipefail
 RACINE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GODOT_BIN="${GODOT_BIN:-$HOME/Desktop/Projets/ffta-remake/tools/godot/Godot.app/Contents/MacOS/Godot}"
+if [[ -z "${GODOT_BIN:-}" ]]; then
+  for candidat in "$HOME/Desktop/Projets/ffta-remake/tools/godot/Godot.app/Contents/MacOS/Godot" \
+                  "$(command -v godot || true)" "/Applications/Godot.app/Contents/MacOS/Godot"; do
+    if [[ -n "$candidat" && -x "$candidat" ]]; then GODOT_BIN="$candidat"; break; fi
+  done
+fi
+GODOT_BIN="${GODOT_BIN:-godot}"
 if [[ ! -x "$GODOT_BIN" ]]; then
   echo "Godot introuvable : $GODOT_BIN (définir GODOT_BIN)" >&2
   exit 1
@@ -33,5 +40,6 @@ case "${1:-jeu}" in
   tests) importer; executer_et_scanner "$GODOT_BIN" --headless --fixed-fps 60 --path "$RACINE" -s res://tests/run_tests.gd ;;
   verifier-demarrage) importer; executer_et_scanner "$GODOT_BIN" --headless --fixed-fps 60 --path "$RACINE" --quit-after 300 ;;
   capture) importer; DOSSIER_CAPTURES="${2:?dossier de sortie}" executer_et_scanner "$GODOT_BIN" --path "$RACINE" -s res://tools/capture.gd ;;
-  *) echo "Usage : $0 jeu | tests | editeur | verifier-demarrage | capture <dossier>" >&2; exit 2 ;;
+  export-web) importer; mkdir -p "$RACINE/build/web"; "$GODOT_BIN" --headless --path "$RACINE" --export-release "Web" "$RACINE/build/web/index.html" >/dev/null && echo "Export web : build/web/" ;;
+  *) echo "Usage : $0 jeu | tests | editeur | verifier-demarrage | capture <dossier> | export-web" >&2; exit 2 ;;
 esac

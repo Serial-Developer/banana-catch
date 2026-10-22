@@ -53,3 +53,5 @@ Donner à chaque événement de la Partie un son distinct, entièrement génér�
 - les lectures audio n'étaient pas arrêtées avec le pilote audio factice.
 
 Correctifs : la banque passe dans un autoload `BanqueSons`, et `Sons` arrête ses voix en quittant l'arbre. `./tools/godot.sh tests` renvoie maintenant le code 0.
+
+**Seconde correction** : les fuites revenaient de façon intermittente. Le pilote audio factice, utilisé sans affichage, ne libère jamais les lectures. `Sons.jouer` ne joue donc plus rien sans affichage, comme pour le gel d'image. Sur 5 exécutions consécutives, la suite renvoie le code 0 à chaque fois.

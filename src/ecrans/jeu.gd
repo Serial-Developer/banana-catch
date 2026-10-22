@@ -31,7 +31,7 @@ func _afficher_titre() -> void:
 	colonne.add_child(Ui.etiquette("Attrape les Bananes du Singe !", 32))
 	colonne.add_child(Ui.etiquette("Meilleur score : %d" % _meilleur_score, 36))
 	colonne.add_child(Ui.etiquette(
-		"Clavier : ←→ / QD bouger · ↑ / Z / Espace sauter · J / X attraper · K / C / Maj dash · Échap pause\n"
+		"Clavier : flèches / QD bouger · haut / Z / Espace sauter · J / X attraper · K / C / Maj dash · Échap pause\n"
 		+ "Manette : stick / croix bouger · A sauter · B attraper · RB dash · Start pause", 20, Color(0.85, 0.85, 0.95)))
 	var jouer: Button = Ui.bouton("Jouer", _lancer_partie)
 	colonne.add_child(jouer)

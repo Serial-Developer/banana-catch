@@ -48,5 +48,6 @@ func _initialize() -> void:
 				print("  FAIL %s::%s | %s" % [nom_fichier, nom, str(resultat)])
 			suite.queue_free()
 			await process_frame
+	OS.remove_logger(erreurs)
 	print("RESULT: %d passed, %d failed" % [reussis, echoues])
 	quit(1 if echoues > 0 or reussis == 0 else 0)
