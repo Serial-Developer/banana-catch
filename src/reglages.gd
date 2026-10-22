@@ -14,3 +14,14 @@ extends Resource
 @export var duree_dash: float = 0.15
 @export var recharge_dash: float = 0.45
 @export var duree_traversee: float = 0.25
+
+@export_group("Attrape")
+@export var duree_fenetre_attrape: float = 0.2
+@export var duree_recuperation: float = 0.4
+
+@export_group("Bananes")
+@export var gravite_banane: float = 900.0
+@export var rayon_banane: float = 16.0
+
+@export_group("Partie")
+@export var stocks_depart: int = 3

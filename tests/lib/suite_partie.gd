@@ -57,3 +57,12 @@ func espionner(nom_signal: String) -> Array:
 	var recus: Array = []
 	partie.connect(nom_signal, func(a: Variant = null, b: Variant = null) -> void: recus.append([a, b]))
 	return recus
+
+
+## Fait courir le Joueur jusqu'à l'abscisse donnée (à 4 px près), puis le laisse s'arrêter.
+func aller_vers(x: float) -> void:
+	var action: String = "move_right" if x > partie.joueur_position().x else "move_left"
+	presser(action)
+	await attendre_que(func() -> bool: return absf(partie.joueur_position().x - x) < 12.0, 5.0)
+	relacher(action)
+	await secondes(0.3)

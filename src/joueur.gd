@@ -4,6 +4,8 @@ extends CharacterBody2D
 
 const TAILLE := Vector2(40.0, 64.0)
 
+enum EtatAttrape { NORMAL, FENETRE, RECUPERATION }
+
 var reglages: Reglages
 
 var _sauts_air_restants: int = 1
@@ -14,6 +16,8 @@ var _direction_dash: float = 1.0
 var _temps_traversee: float = 0.0
 var _orientation: float = 1.0
 var _actions_precedentes: Dictionary = {}
+var _etat_attrape: EtatAttrape = EtatAttrape.NORMAL
+var _temps_etat_attrape: float = 0.0
 
 
 func _ready() -> void:
@@ -37,7 +41,39 @@ func boite() -> Rect2:
 
 func _physics_process(delta: float) -> void:
 	_simuler(delta)
+	_simuler_attrape(delta)
 	_memoriser_actions()
+
+
+## Vrai si un contact avec une Banane est maintenant une Attrape.
+func peut_attraper() -> bool:
+	return _etat_attrape == EtatAttrape.FENETRE
+
+
+## Une Attrape ferme la Fenêtre d'attrape sans Récupération.
+func confirmer_attrape() -> void:
+	_etat_attrape = EtatAttrape.NORMAL
+	_temps_etat_attrape = 0.0
+
+
+func etat_attrape() -> EtatAttrape:
+	return _etat_attrape
+
+
+func _simuler_attrape(delta: float) -> void:
+	_temps_etat_attrape = maxf(_temps_etat_attrape - delta, 0.0)
+	match _etat_attrape:
+		EtatAttrape.NORMAL:
+			if _appui("catch"):
+				_etat_attrape = EtatAttrape.FENETRE
+				_temps_etat_attrape = reglages.duree_fenetre_attrape
+		EtatAttrape.FENETRE:
+			if _temps_etat_attrape <= 0.0:
+				_etat_attrape = EtatAttrape.RECUPERATION
+				_temps_etat_attrape = reglages.duree_recuperation
+		EtatAttrape.RECUPERATION:
+			if _temps_etat_attrape <= 0.0:
+				_etat_attrape = EtatAttrape.NORMAL
 
 
 func _simuler(delta: float) -> void:
@@ -101,5 +137,14 @@ func _memoriser_actions() -> void:
 		_actions_precedentes[action] = Input.is_action_pressed(action)
 
 
+func _process(_delta: float) -> void:
+	queue_redraw()
+
+
 func _draw() -> void:
-	draw_rect(Rect2(-TAILLE.x / 2.0, -TAILLE.y, TAILLE.x, TAILLE.y), Color(0.95, 0.75, 0.3))
+	var couleur := Color(0.95, 0.75, 0.3)
+	if _etat_attrape == EtatAttrape.FENETRE:
+		couleur = Color(0.4, 1.0, 0.5)
+	elif _etat_attrape == EtatAttrape.RECUPERATION:
+		couleur = Color(0.55, 0.5, 0.45)
+	draw_rect(Rect2(-TAILLE.x / 2.0, -TAILLE.y, TAILLE.x, TAILLE.y), couleur)
