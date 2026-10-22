@@ -1,0 +1,30 @@
+; Engine configuration file.
+
+config_version=5
+
+[application]
+
+config/name="Banana Catch"
+config/description="Platformer d'arcade façon Smash : attraper les Bananes du Singe."
+run/main_scene="res://scenes/partie.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[autoload]
+
+ActionsEntree="*res://src/actions_entree.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
