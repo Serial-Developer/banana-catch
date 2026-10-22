@@ -39,7 +39,8 @@ func jouer(nom: String, gain_db: float = 0.0, hauteur: float = 1.0) -> void:
 			break
 	_voix.erase(lecteur)
 	_voix.append(lecteur)
-	lecteur.stream = BanqueSons.son(nom)
+	# Recherche à l'exécution : ce script peut être compilé avant l'enregistrement des autoloads (outils -s).
+	lecteur.stream = get_node("/root/BanqueSons").son(nom)
 	# Marge de -6 dB pour que plusieurs sons simultanés ne saturent pas.
 	lecteur.volume_db = linear_to_db(maxf(reglages.volume, 0.0001)) - 6.0 + gain_db
 	lecteur.pitch_scale = hauteur

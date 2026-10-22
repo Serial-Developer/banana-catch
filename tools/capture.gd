@@ -19,10 +19,16 @@ func _initialize() -> void:
 	var singe: Singe = partie.get("_singe")
 	for type: int in 3:
 		var limite: int = 4000
-		while limite > 0 and not (singe.etat() == Singe.Etat.ELAN and singe.type_en_preparation() == type and singe.get("_temps") > 0.15):
+		while limite > 0 and is_instance_valid(singe) and not (singe.etat() == Singe.Etat.ELAN and singe.type_en_preparation() == type and singe.get("_temps") > 0.15):
 			await process_frame
 			limite -= 1
+		if not is_instance_valid(singe):
+			break
 		await _capturer("1b_elan_%d" % type)
+	if not is_instance_valid(singe):
+		push_warning("capture : la Partie s'est arrêtée avant les captures de jeu")
+		quit()
+		return
 	singe.actif = false
 	partie.forcer_lancer(Lancer.new(Lancer.Type.LOB, Vector2(300.0, 200.0), Vector2(0.0, -900.0)))
 	await _attendre(20)
