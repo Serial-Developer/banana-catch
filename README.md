@@ -4,7 +4,7 @@ Petit jeu d'arcade 2D inspiré de Smash Bros. Un Singe te lance des Bananes : at
 
 ## Jouer
 
-- **Dans le navigateur** : ouvre le lien de la version web. Clique une fois dans la page pour activer le son.
+- **Dans le navigateur** : https://serial-developer.github.io/banana-catch/ (clique une fois dans la page pour activer le son).
 - **Contrôles clavier** : flèches ou ZQSD pour bouger, haut / Z / Espace pour sauter, **J ou X pour attraper**, K / C / Maj pour le dash, Échap pour la pause.
 - **Manette** : stick ou croix pour bouger, A pour sauter, **B pour attraper**, RB pour le dash, Start pour la pause.
 
@@ -19,6 +19,7 @@ Prérequis : [Godot 4.7.2](https://godotengine.org/download/archive/4.7.2-stable
 ./tools/godot.sh jeu          # lancer le jeu
 ./tools/godot.sh tests        # lancer les tests sans affichage (code de sortie 0 = tout passe)
 ./tools/godot.sh export-web   # exporter la version web dans build/web/
+./tools/publier_web.sh        # exporter et publier la version web (branche gh-pages)
 ```
 
 Le script cherche Godot dans cet ordre : la variable `GODOT_BIN`, puis la commande `godot` du PATH, puis `/Applications/Godot.app`. Par exemple :
