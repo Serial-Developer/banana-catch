@@ -17,6 +17,8 @@ var _temps_traversee: float = 0.0
 var _orientation: float = 1.0
 var _actions_precedentes: Dictionary = {}
 var _etat_attrape: EtatAttrape = EtatAttrape.NORMAL
+var _temps_ejection: float = 0.0
+var _temps_invulnerabilite: float = 0.0
 var _temps_etat_attrape: float = 0.0
 
 
@@ -47,7 +49,38 @@ func _physics_process(delta: float) -> void:
 
 ## Vrai si un contact avec une Banane est maintenant une Attrape.
 func peut_attraper() -> bool:
-	return _etat_attrape == EtatAttrape.FENETRE
+	return _etat_attrape == EtatAttrape.FENETRE and not en_ejection()
+
+
+func en_ejection() -> bool:
+	return _temps_ejection > 0.0
+
+
+func invulnerable() -> bool:
+	return _temps_invulnerabilite > 0.0
+
+
+## Coup : le Joueur est projeté et perd le contrôle pendant `duree`.
+func ejecter(vitesse_ejection: Vector2, duree: float) -> void:
+	velocity = vitesse_ejection
+	_temps_ejection = duree
+	_temps_dash = 0.0
+	_etat_attrape = EtatAttrape.NORMAL
+	_temps_etat_attrape = 0.0
+
+
+func devenir_invulnerable(duree: float) -> void:
+	_temps_invulnerabilite = duree
+
+
+## Remet le Joueur en jeu au point donné, immobile et sans état en cours.
+func reapparaitre(point: Vector2) -> void:
+	position = point
+	velocity = Vector2.ZERO
+	_temps_ejection = 0.0
+	_temps_dash = 0.0
+	_etat_attrape = EtatAttrape.NORMAL
+	_temps_etat_attrape = 0.0
 
 
 ## Une Attrape ferme la Fenêtre d'attrape sans Récupération.
@@ -64,7 +97,7 @@ func _simuler_attrape(delta: float) -> void:
 	_temps_etat_attrape = maxf(_temps_etat_attrape - delta, 0.0)
 	match _etat_attrape:
 		EtatAttrape.NORMAL:
-			if _appui("catch"):
+			if _appui("catch") and not en_ejection():
 				_etat_attrape = EtatAttrape.FENETRE
 				_temps_etat_attrape = reglages.duree_fenetre_attrape
 		EtatAttrape.FENETRE:
@@ -77,6 +110,13 @@ func _simuler_attrape(delta: float) -> void:
 
 
 func _simuler(delta: float) -> void:
+	_temps_invulnerabilite = maxf(_temps_invulnerabilite - delta, 0.0)
+	if _temps_ejection > 0.0:
+		# Éjection : aucun contrôle, seule la gravité agit.
+		_temps_ejection -= delta
+		velocity.y = minf(velocity.y + reglages.gravite * delta, reglages.vitesse_chute_max * 1.5)
+		move_and_slide()
+		return
 	var direction: float = Input.get_axis("move_left", "move_right")
 	if direction != 0.0:
 		_orientation = signf(direction)
@@ -147,4 +187,8 @@ func _draw() -> void:
 		couleur = Color(0.4, 1.0, 0.5)
 	elif _etat_attrape == EtatAttrape.RECUPERATION:
 		couleur = Color(0.55, 0.5, 0.45)
+	if en_ejection():
+		couleur = Color(1.0, 0.35, 0.3)
+	if invulnerable() and int(Time.get_ticks_msec() / 80.0) % 2 == 0:
+		couleur.a = 0.35
 	draw_rect(Rect2(-TAILLE.x / 2.0, -TAILLE.y, TAILLE.x, TAILLE.y), couleur)

@@ -5,11 +5,14 @@ extends SceneTree
 ## Code de sortie 0 = tout passe, 1 = au moins un échec.
 
 const DOSSIER_TESTS: String = "res://tests/unit"
+const CompteurErreurs = preload("res://tests/lib/compteur_erreurs.gd")
 
 
 func _initialize() -> void:
 	# Une image pour laisser les autoloads finir leur _ready().
 	await process_frame
+	var erreurs := CompteurErreurs.new()
+	OS.add_logger(erreurs)
 	var reussis: int = 0
 	var echoues: int = 0
 	var filtre: String = OS.get_environment("FILTRE_TESTS")
@@ -30,9 +33,13 @@ func _initialize() -> void:
 			if not nom.begins_with("test_"):
 				continue
 			# Une instance neuve par test : aucun état partagé entre tests.
+			erreurs.vider()
 			var suite: Node = script.new()
 			root.add_child(suite)
 			var resultat: Variant = await suite.call(nom)
+			var survenues: PackedStringArray = erreurs.vider()
+			if not survenues.is_empty():
+				resultat = "erreur pendant le test : %s" % survenues[0]
 			if resultat is String and resultat == "":
 				reussis += 1
 				print("  PASS %s::%s" % [nom_fichier, nom])

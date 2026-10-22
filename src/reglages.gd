@@ -25,3 +25,17 @@ extends Resource
 
 @export_group("Partie")
 @export var stocks_depart: int = 3
+
+@export_group("Coup et Éjection")
+@export var pourcentage_par_coup: float = 12.0
+## Force d'Éjection = base + Pourcentage × facteur (en px/s).
+@export var ejection_base: float = 380.0
+@export var ejection_facteur: float = 9.0
+## Composante verticale (vers le haut) de la direction d'Éjection, avant normalisation.
+@export var ejection_composante_haute: float = 0.7
+## Durée sans contrôle par unité de force d'Éjection (s par px/s).
+@export var ejection_duree_par_force: float = 0.00035
+@export var ejection_duree_min: float = 0.15
+
+@export_group("Stocks")
+@export var duree_invulnerabilite: float = 2.0

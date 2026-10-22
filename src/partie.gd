@@ -4,7 +4,9 @@ extends Node2D
 
 signal lancer(type: Lancer.Type)
 signal attrape
+signal coup(pourcentage: float)
 signal echec
+signal reapparition
 signal stock_perdu(stocks_restants: int)
 signal fin_de_partie(score: int, record_battu: bool)
 
@@ -21,6 +23,7 @@ var _joueur: Joueur
 var _bananes: Array[Banane] = []
 var _score: int = 0
 var _stocks: int = 0
+var _pourcentage: float = 0.0
 var _terminee: bool = false
 
 
@@ -59,6 +62,18 @@ func stocks() -> int:
 
 func terminee() -> bool:
 	return _terminee
+
+
+func pourcentage() -> float:
+	return _pourcentage
+
+
+func joueur_en_ejection() -> bool:
+	return _joueur.en_ejection()
+
+
+func joueur_invulnerable() -> bool:
+	return _joueur.invulnerable()
 
 
 func nombre_bananes_en_vol() -> int:
@@ -113,23 +128,53 @@ func _physics_process(delta: float) -> void:
 	if _terminee:
 		return
 	for banane: Banane in _bananes.duplicate():
+		if _terminee:
+			return
 		_avancer_banane(banane, delta)
+	if not _terminee and not Arene.LIMITES.has_point(_joueur.position):
+		_perdre_stock()
+		if not _terminee:
+			_joueur.reapparaitre(Arene.POINT_APPARITION)
+			reapparition.emit()
 
 
+## Résout la Banane sur toute l'image physique : Attrape > Coup > Échec.
 func _avancer_banane(banane: Banane, delta: float) -> void:
+	var touche_joueur: bool = false
+	var hors_jeu: bool = false
 	for point: Vector2 in banane.avancer(delta):
 		banane.position = point
-		if banane.touche(point, _joueur.boite()) and _joueur.peut_attraper():
-			_retirer(banane)
-			_joueur.confirmer_attrape()
-			_score += 1
-			attrape.emit()
-			return
-		if _touche_une_plateforme(banane, point) or point.y > FOND_DU_VIDE or not Arene.LIMITES.has_point(point):
-			_retirer(banane)
-			echec.emit()
-			_perdre_stock()
-			return
+		if banane.touche(point, _joueur.boite()) and (_joueur.peut_attraper() or not _joueur.invulnerable()):
+			touche_joueur = true
+			break
+		if not hors_jeu and (_touche_une_plateforme(banane, point) or point.y > FOND_DU_VIDE or not Arene.LIMITES.has_point(point)):
+			hors_jeu = true
+	if touche_joueur and _joueur.peut_attraper():
+		_retirer(banane)
+		_joueur.confirmer_attrape()
+		_score += 1
+		attrape.emit()
+	elif touche_joueur:
+		_retirer(banane)
+		_subir_coup(banane)
+	elif hors_jeu:
+		_retirer(banane)
+		echec.emit()
+		_perdre_stock()
+
+
+func _subir_coup(banane: Banane) -> void:
+	_pourcentage += reglages.pourcentage_par_coup
+	var horizontal: float = banane.vitesse.x / maxf(banane.vitesse.length(), 1.0)
+	if absf(horizontal) < 0.3:
+		# Banane presque verticale : le Joueur est repoussé du côté opposé à la Banane.
+		var cote: float = signf(_joueur.position.x - banane.position.x)
+		horizontal = 0.3 * (cote if cote != 0.0 else 1.0)
+	var direction := Vector2(horizontal, -reglages.ejection_composante_haute).normalized()
+	var force: float = reglages.ejection_base + _pourcentage * reglages.ejection_facteur
+	var duree: float = maxf(reglages.ejection_duree_min, force * reglages.ejection_duree_par_force)
+	_joueur.ejecter(direction * force, duree)
+	coup.emit(_pourcentage)
 
 
 func _touche_une_plateforme(banane: Banane, point: Vector2) -> bool:
@@ -146,9 +191,12 @@ func _retirer(banane: Banane) -> void:
 
 func _perdre_stock() -> void:
 	_stocks -= 1
+	_pourcentage = 0.0
 	stock_perdu.emit(_stocks)
 	if _stocks <= 0:
 		_terminer()
+	else:
+		_joueur.devenir_invulnerable(reglages.duree_invulnerabilite)
 
 
 func _terminer() -> void:

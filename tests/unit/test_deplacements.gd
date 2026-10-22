@@ -76,9 +76,9 @@ func test_le_joueur_qui_sort_de_la_plateforme_principale_tombe_dans_le_vide() ->
 	nouvelle_partie()
 	await secondes(1.0)
 	presser("move_right")
-	await secondes(2.5)
+	var tombe: bool = await attendre_que(func() -> bool: return partie.joueur_position().y > 800.0, 3.0)
 	relacher("move_right")
-	if partie.joueur_position().y < 800.0:
+	if not tombe:
 		return "le Joueur devrait tomber dans le vide, y=%s" % partie.joueur_position().y
 	return ""
 

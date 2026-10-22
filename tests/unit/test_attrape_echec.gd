@@ -8,6 +8,7 @@ var attrapes: Array
 var echecs: Array
 var stocks_perdus: Array
 var fins: Array
+var coups: Array
 
 
 func _partie_prete() -> void:
@@ -16,6 +17,7 @@ func _partie_prete() -> void:
 	echecs = espionner("echec")
 	stocks_perdus = espionner("stock_perdu")
 	fins = espionner("fin_de_partie")
+	coups = espionner("coup")
 	await secondes(1.0)
 	# À gauche de l'Arène, aucune Plateforme haute au-dessus du Joueur.
 	await aller_vers(X_DEGAGE)
@@ -79,8 +81,8 @@ func test_un_appui_trop_tot_mene_a_la_recuperation_puis_pas_d_attrape() -> Strin
 	await secondes(2.0)
 	if not attrapes.is_empty():
 		return "aucune Attrape attendue après un appui trop tôt"
-	if echecs.size() != 1:
-		return "la Banane non attrapée devrait finir en Échec (échecs=%d)" % echecs.size()
+	if coups.size() != 1 or not echecs.is_empty():
+		return "la Banane non attrapée devrait être un Coup (Coups=%d, Échecs=%d)" % [coups.size(), echecs.size()]
 	return ""
 
 
