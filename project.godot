@@ -12,6 +12,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 [autoload]
 
 ActionsEntree="*res://src/actions_entree.gd"
+BanqueSons="*res://src/audio/banque_sons.gd"
 
 [display]
 

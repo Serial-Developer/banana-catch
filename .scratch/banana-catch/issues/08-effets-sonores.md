@@ -47,3 +47,9 @@ Donner à chaque événement de la Partie un son distinct, entièrement génér�
 **À vérifier à la main**
 - [ ] Chaque événement a un son reconnaissable et agréable. Il faut écouter, je n'ai pas pu le faire.
 - [ ] Plusieurs sons simultanés ne saturent pas en jeu, surtout au Palier 25 avec 3 Bananes en vol.
+
+**Correction après la clôture** : la commande de test renvoyait le code 1 alors que les 42 tests passaient. En cause, l'avertissement « ObjectDB instances leaked at exit » :
+- la banque de sons était stockée dans une variable statique, jamais libérée ;
+- les lectures audio n'étaient pas arrêtées avec le pilote audio factice.
+
+Correctifs : la banque passe dans un autoload `BanqueSons`, et `Sons` arrête ses voix en quittant l'arbre. `./tools/godot.sh tests` renvoie maintenant le code 0.
