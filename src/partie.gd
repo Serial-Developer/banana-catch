@@ -3,9 +3,9 @@ extends Node2D
 ## Une Partie : l'Arène, le Joueur, le Singe et les Bananes, avec toutes les règles du jeu.
 
 signal lancer(type: Lancer.Type)
-signal attrape
+signal attrape(lieu: Vector2)
 signal coup(pourcentage: float)
-signal echec
+signal echec(lieu: Vector2)
 signal reapparition
 signal stock_perdu(stocks_restants: int)
 signal fin_de_partie(score: int, record_battu: bool)
@@ -25,6 +25,8 @@ var _rng := RandomNumberGenerator.new()
 ## Contient tout ce qui se fige pendant la pause (Arène, Joueur, Singe, Bananes).
 var _monde := Node2D.new()
 var _en_pause: bool = false
+var _gel_restant: float = 0.0
+var _camera := Camera2D.new()
 var _pause_pressee: bool = false
 var _joueur: Joueur
 var _singe: Singe
@@ -52,6 +54,9 @@ func _ready() -> void:
 	process_physics_priority = 10
 	_rng.seed = graine
 	_stocks = reglages.stocks_depart
+	add_child(Fond.new())
+	_camera.position = Fond.TAILLE / 2.0
+	add_child(_camera)
 	_monde.name = "Monde"
 	add_child(_monde)
 	_monde.add_child(Arene.new())
@@ -68,6 +73,10 @@ func _ready() -> void:
 	_singe.score = score
 	_singe.lance.connect(forcer_lancer)
 	_monde.add_child(_singe)
+	var effets := Effets.new()
+	effets.partie = self
+	effets.camera = _camera
+	_monde.add_child(effets)
 
 
 # --- État observable -------------------------------------------------------
@@ -92,8 +101,29 @@ func mettre_en_pause(valeur: bool) -> void:
 	if valeur == _en_pause or (_terminee and valeur):
 		return
 	_en_pause = valeur
-	_monde.process_mode = Node.PROCESS_MODE_DISABLED if valeur else Node.PROCESS_MODE_INHERIT
+	_actualiser_monde()
 	pause_changee.emit(valeur)
+
+
+## Gel d'image : fige le monde un court instant pour donner du poids à un impact.
+## Sans affichage (tests), ou si désactivé dans les réglages, le gel est ignoré.
+func geler(duree: float) -> void:
+	if not reglages.gel_image or DisplayServer.get_name() == "headless":
+		return
+	_gel_restant = maxf(_gel_restant, duree)
+	_actualiser_monde()
+
+
+func _actualiser_monde() -> void:
+	var fige: bool = _en_pause or _gel_restant > 0.0
+	_monde.process_mode = Node.PROCESS_MODE_DISABLED if fige else Node.PROCESS_MODE_INHERIT
+
+
+func _process(delta: float) -> void:
+	if _gel_restant > 0.0:
+		_gel_restant = maxf(_gel_restant - delta, 0.0)
+		if _gel_restant <= 0.0:
+			_actualiser_monde()
 
 
 func temps_ecoule() -> float:
@@ -169,7 +199,7 @@ func _physics_process(delta: float) -> void:
 	if pause_pressee and not _pause_pressee:
 		mettre_en_pause(not _en_pause)
 	_pause_pressee = pause_pressee
-	if _terminee or _en_pause:
+	if _terminee or _en_pause or _gel_restant > 0.0:
 		return
 	_temps_ecoule += delta
 	for banane: Banane in _bananes.duplicate():
@@ -198,13 +228,13 @@ func _avancer_banane(banane: Banane, delta: float) -> void:
 		_retirer(banane)
 		_joueur.confirmer_attrape()
 		_score += 1
-		attrape.emit()
+		attrape.emit(banane.position)
 	elif touche_joueur:
 		_retirer(banane)
 		_subir_coup(banane)
 	elif hors_jeu:
 		_retirer(banane)
-		echec.emit()
+		echec.emit(banane.position)
 		_perdre_stock()
 
 

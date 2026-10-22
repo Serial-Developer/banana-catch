@@ -16,9 +16,26 @@ func _initialize() -> void:
 	(jeu as Jeu).call("_lancer_partie")
 	await _attendre(90)
 	var partie: Partie = jeu.get("_partie")
-	partie.forcer_lancer(Lancer.new(Lancer.Type.ARC, Vector2(600.0, 300.0), Vector2(60.0, -100.0)))
+	var singe: Singe = partie.get("_singe")
+	for type: int in 3:
+		var limite: int = 4000
+		while limite > 0 and not (singe.etat() == Singe.Etat.ELAN and singe.type_en_preparation() == type and singe.get("_temps") > 0.15):
+			await process_frame
+			limite -= 1
+		await _capturer("1b_elan_%d" % type)
+	singe.actif = false
+	partie.forcer_lancer(Lancer.new(Lancer.Type.LOB, Vector2(300.0, 200.0), Vector2(0.0, -900.0)))
+	await _attendre(20)
+	await _capturer("2_partie_lob_hors_ecran")
+	var pieds: Vector2 = partie.joueur_position()
+	partie.forcer_lancer(Lancer.new(Lancer.Type.TIR_TENDU, pieds + Vector2(-200.0, -40.0), Vector2(900.0, 0.0)))
+	await _attendre(16)
+	await _capturer("2b_coup")
 	await _attendre(150)
-	await _capturer("2_partie")
+	Input.action_press("catch")
+	await _attendre(3)
+	await _capturer("2c_fenetre_attrape")
+	Input.action_release("catch")
 	partie.mettre_en_pause(true)
 	await _attendre(10)
 	await _capturer("3_pause")

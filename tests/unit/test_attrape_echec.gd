@@ -180,3 +180,20 @@ func test_chaque_banane_n_a_qu_une_seule_issue() -> String:
 	if attrapes.size() != 1 or echecs.size() != 1:
 		return "attendu exactement 1 Attrape et 1 Échec, obtenu %d et %d" % [attrapes.size(), echecs.size()]
 	return ""
+
+
+func test_l_echec_et_l_attrape_indiquent_ou_ils_ont_lieu() -> String:
+	await _partie_prete()
+	_lacher_loin_du_joueur(900.0)
+	await secondes(2.0)
+	var lieu_echec: Vector2 = echecs[0][0]
+	if absf(lieu_echec.x - 900.0) > 1.0 or absf(lieu_echec.y - Arene.HAUT_PRINCIPALE) > 20.0:
+		return "l'Échec devrait être situé sur la Plateforme principale en x=900, obtenu %s" % lieu_echec
+	_lacher_sur_le_joueur()
+	await _attendre_banane_proche(60.0)
+	await taper("catch")
+	await secondes(1.0)
+	var lieu_attrape: Vector2 = attrapes[0][0]
+	if lieu_attrape.distance_to(partie.joueur_position()) > 100.0:
+		return "l'Attrape devrait être située près du Joueur, obtenu %s" % lieu_attrape
+	return ""

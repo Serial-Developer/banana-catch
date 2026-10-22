@@ -177,18 +177,75 @@ func _memoriser_actions() -> void:
 		_actions_precedentes[action] = Input.is_action_pressed(action)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_temps_anim += delta * (1.0 + absf(velocity.x) / 120.0)
 	queue_redraw()
 
 
+# --- Rendu (aucune règle ici) ------------------------------------------------
+
+const PEAU := Color(1.0, 0.8, 0.6)
+const TENUE := Color(0.2, 0.55, 0.95)
+const CHEVEUX := Color(0.95, 0.4, 0.15)
+const GANTS := Color(0.98, 0.98, 1.0)
+
+var _temps_anim: float = 0.0
+
+
 func _draw() -> void:
-	var couleur := Color(0.95, 0.75, 0.3)
-	if _etat_attrape == EtatAttrape.FENETRE:
-		couleur = Color(0.4, 1.0, 0.5)
-	elif _etat_attrape == EtatAttrape.RECUPERATION:
-		couleur = Color(0.55, 0.5, 0.45)
+	var alpha: float = 1.0
+	if invulnerable() and int(Time.get_ticks_msec() / 70.0) % 2 == 0:
+		alpha = 0.4
+	var teinte := Color(1.0, 1.0, 1.0, alpha)
+	if _etat_attrape == EtatAttrape.RECUPERATION:
+		teinte = Color(0.65, 0.65, 0.7, alpha)
+	var penche: float = 0.0
 	if en_ejection():
-		couleur = Color(1.0, 0.35, 0.3)
-	if invulnerable() and int(Time.get_ticks_msec() / 80.0) % 2 == 0:
-		couleur.a = 0.35
-	draw_rect(Rect2(-TAILLE.x / 2.0, -TAILLE.y, TAILLE.x, TAILLE.y), couleur)
+		penche = sin(_temps_anim * 18.0) * 0.6
+	elif _temps_dash > 0.0:
+		penche = 0.35 * _direction_dash
+	draw_set_transform(Vector2(0.0, -32.0), penche, Vector2(_orientation, 1.0))
+
+	if _etat_attrape == EtatAttrape.FENETRE:
+		draw_circle(Vector2(8.0, -14.0), 40.0, Color(0.5, 1.0, 0.6, 0.25))
+		draw_arc(Vector2(8.0, -14.0), 40.0, 0.0, TAU, 32, Color(0.6, 1.0, 0.7, 0.8), 3.0)
+
+	# Jambes : balancier à la course, repliées en l'air.
+	var pas: float = sin(_temps_anim * 10.0) * 9.0 if is_on_floor() and absf(velocity.x) > 20.0 else 0.0
+	var pli: float = -8.0 if not is_on_floor() else 0.0
+	Dessin.membre(self, Vector2(-7.0, 14.0), Vector2(-7.0 + pas, 30.0 + pli), 8.0, TENUE.darkened(0.3) * teinte)
+	Dessin.membre(self, Vector2(7.0, 14.0), Vector2(7.0 - pas, 30.0 + pli), 8.0, TENUE.darkened(0.3) * teinte)
+	# Corps.
+	Dessin.polygone(self, Dessin.rectangle_arrondi(Vector2(0.0, 4.0), Vector2(30.0, 28.0), 10.0), TENUE * teinte)
+	# Bras selon l'état : tendus vers le haut pour attraper, ballants en Récupération.
+	var main_avant := Vector2(16.0, 10.0)
+	var main_arriere := Vector2(-15.0, 12.0)
+	if _etat_attrape == EtatAttrape.FENETRE:
+		main_avant = Vector2(22.0, -24.0)
+		main_arriere = Vector2(10.0, -30.0)
+	elif _etat_attrape == EtatAttrape.RECUPERATION:
+		main_avant = Vector2(10.0, 20.0)
+		main_arriere = Vector2(-8.0, 20.0)
+	elif en_ejection():
+		main_avant = Vector2(20.0, -18.0)
+		main_arriere = Vector2(-22.0, -14.0)
+	Dessin.membre(self, Vector2(-9.0, -4.0), main_arriere, 7.0, TENUE.darkened(0.15) * teinte)
+	Dessin.membre(self, Vector2(9.0, -4.0), main_avant, 7.0, TENUE.darkened(0.15) * teinte)
+	Dessin.cercle(self, main_arriere, 5.5, GANTS * teinte, 3.0)
+	Dessin.cercle(self, main_avant, 5.5, GANTS * teinte, 3.0)
+	# Tête et mèche.
+	Dessin.polygone(self, PackedVector2Array([Vector2(-14.0, -22.0), Vector2(-4.0, -40.0), Vector2(2.0, -26.0), Vector2(12.0, -38.0), Vector2(14.0, -20.0)]), CHEVEUX * teinte, 3.0)
+	Dessin.cercle(self, Vector2(2.0, -16.0), 14.0, PEAU * teinte)
+	Dessin.polygone(self, PackedVector2Array([Vector2(-13.0, -20.0), Vector2(-6.0, -32.0), Vector2(6.0, -31.0), Vector2(15.0, -22.0), Vector2(4.0, -25.0)]), CHEVEUX * teinte, 0.0)
+	# Yeux : en croix pendant l'Éjection, mi-clos en Récupération.
+	var oeil := Vector2(8.0, -17.0)
+	if en_ejection():
+		for d: Vector2 in [Vector2(-3.0, -3.0), Vector2(3.0, -3.0)]:
+			draw_line(oeil + d, oeil - d, Dessin.CONTOUR, 2.5)
+	elif _etat_attrape == EtatAttrape.RECUPERATION:
+		draw_line(oeil + Vector2(-3.0, 0.0), oeil + Vector2(3.0, 0.0), Dessin.CONTOUR, 2.5)
+		draw_circle(Vector2(-10.0, -26.0), 3.0, Color(0.6, 0.85, 1.0, alpha))
+	else:
+		draw_circle(oeil, 3.2, Color(1.0, 1.0, 1.0, alpha))
+		draw_circle(oeil + Vector2(1.0, 0.0), 1.8, Dessin.CONTOUR)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

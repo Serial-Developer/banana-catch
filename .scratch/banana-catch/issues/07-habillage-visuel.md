@@ -1,6 +1,6 @@
 # 07 : Habillage visuel façon Smash
 
-Status: ready-for-agent
+Status: done
 Blocked by: 03, 04
 Spec: ../spec.md (user stories 13 à 15, 26, 40, 54, 55, 57)
 
@@ -30,7 +30,7 @@ Remplacer les formes provisoires par un style cartoon inspiré de Smash, entièr
 
 ## Critères d'acceptation
 
-- [ ] Toute la suite de tests existante passe toujours.
+- [x] Toute la suite de tests existante passe toujours.
 - [ ] Vérification manuelle :
   - chaque état du Joueur est reconnaissable à l'écran ;
   - les trois Élans du Singe se distinguent ;
@@ -38,3 +38,40 @@ Remplacer les formes provisoires par un style cartoon inspiré de Smash, entièr
   - aucun fichier image ou son externe n'est ajouté au projet.
 
 ## Comments
+
+### Compte rendu (agent, 2026-10-22)
+
+**Fait**
+- `Dessin` : primitives cartoon cernées d'un contour épais (cercle, ellipse, polygone, membre, rectangle arrondi, Banane en croissant).
+- Joueur original : mèche orange, tenue bleue, gants blancs. Ses poses :
+  - Fenêtre d'attrape : bras tendus vers le haut et halo vert ;
+  - Récupération : grisé, bras ballants, yeux mi-clos et goutte de sueur ;
+  - Éjection : tournoiement et yeux en croix ;
+  - Invulnérabilité : clignotement ;
+  - course : jambes en balancier ; en l'air : jambes repliées ; dash : corps penché.
+- Singe original : fourrure brune, casquette rouge avec un emblème banane, salopette bleue, queue en spirale. Ses Élans :
+  - Arc : bras derrière l'épaule, aura orange ;
+  - Tir tendu : accroupi, bras tiré en arrière à l'horizontale, aura rouge ;
+  - Lob : deux bras au-dessus de la tête, aura violette.
+
+  Pendant l'Élan, il tient la Banane dans sa main.
+- Banane : croissant jaune cerné qui tourne sur lui-même en vol.
+- Arène : île flottante (herbe sur roche) et dalles bleues lumineuses pour les Plateformes hautes. Décor `Fond` : ciel en dégradé, soleil, deux plans de montagnes et nuages en parallaxe.
+- `Effets`, qui réagit aux signaux de la Partie :
+  - Attrape : étincelles, anneau, « +1 » et petit gel d'image ;
+  - Coup : étincelles, anneau, gel et secousse de caméra, proportionnels au Pourcentage ;
+  - Échec : éclaboussure et tache qui s'efface en 3 s ;
+  - perte de Stock hors de l'écran : explosion et faisceau depuis le bord de l'écran, comme dans Smash ;
+  - Réapparition : halo ;
+  - Banane au-dessus de l'écran : flèche en bord d'écran avec la distance.
+- Gel d'image (`Partie.geler`) : il fige le « Monde ». Il est ignoré sans affichage et désactivable par `Reglages.gel_image`, donc les tests ne sont ni modifiés ni ralentis.
+- Les signaux `attrape(lieu)` et `echec(lieu)` indiquent maintenant où l'événement a lieu, pour placer les effets. Un test le vérifie.
+- `tools/capture.gd` : il capture aussi les Élans, un Lob hors écran, un Coup et la Fenêtre d'attrape.
+
+**Vérifié sur les captures** : le titre, la Partie, la flèche du Lob hors écran, le halo de la Fenêtre d'attrape, l'Élan du Tir tendu, la pause et l'écran de fin. Aucun fichier image ou son n'a été ajouté.
+
+**À vérifier à la main**
+- L'Élan du Lob n'a pas pu être capturé : la Partie de capture s'est terminée avant qu'il apparaisse.
+- La lisibilité des trois Élans en mouvement.
+- La sensation du gel d'image et de la secousse.
+- La lisibilité du « 0% » du HUD, qui recouvre le bas de l'île.

@@ -40,6 +40,10 @@ extends Resource
 @export_group("Stocks")
 @export var duree_invulnerabilite: float = 2.0
 
+@export_group("Effets")
+## Gel d'image sur les impacts (toujours ignoré sans affichage).
+@export var gel_image: bool = true
+
 @export_group("Singe")
 @export var singe_vitesse: float = 320.0
 

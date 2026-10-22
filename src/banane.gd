@@ -28,5 +28,13 @@ func touche(centre: Vector2, rect: Rect2) -> bool:
 	return centre.distance_squared_to(proche) <= rayon * rayon
 
 
+func _process(delta: float) -> void:
+	_rotation_visuelle += delta * (6.0 + vitesse.length() / 120.0) * signf(vitesse.x if vitesse.x != 0.0 else 1.0)
+	queue_redraw()
+
+
+var _rotation_visuelle: float = 0.0
+
+
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, rayon, Color(1.0, 0.9, 0.2))
+	Dessin.banane(self, Vector2.ZERO, rayon * 2.6, _rotation_visuelle)

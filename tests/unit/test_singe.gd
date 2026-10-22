@@ -57,9 +57,9 @@ func _duree_de_vol_moyenne(type_vise: Lancer.Type) -> float:
 		if l[0] == type_vise:
 			cumul.total += p.temps_ecoule() - l[1]
 			cumul.nombre += 1
-	partie.attrape.connect(resoudre)
+	partie.attrape.connect(resoudre.unbind(1))
 	partie.coup.connect(func(_pourcentage: float) -> void: resoudre.call())
-	partie.echec.connect(resoudre)
+	partie.echec.connect(resoudre.unbind(1))
 	await secondes(120.0)
 	partie.queue_free()
 	await images(1)

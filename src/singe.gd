@@ -127,13 +127,78 @@ func _calculer_lancer() -> Lancer:
 	return Lancer.new(_type, main, vitesse)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_temps_anim += delta
 	queue_redraw()
 
 
+# --- Rendu : un singe original (casquette, salopette, queue). Aucune règle ici. --
+
+const FOURRURE := Color(0.5, 0.3, 0.15)
+const VISAGE := Color(0.95, 0.78, 0.58)
+const CASQUETTE := Color(0.9, 0.15, 0.15)
+const SALOPETTE := Color(0.2, 0.4, 0.85)
+## Couleur d'aura de l'Élan, par type de Lancer.
+const AURA: Array[Color] = [Color(1.0, 0.75, 0.2), Color(1.0, 0.25, 0.2), Color(0.65, 0.4, 1.0)]
+
+var _temps_anim: float = 0.0
+
+
 func _draw() -> void:
-	var couleur := Color(0.55, 0.33, 0.18)
-	if _etat == Etat.ELAN:
-		couleur = [Color(0.9, 0.6, 0.2), Color(1.0, 0.3, 0.2), Color(0.6, 0.4, 1.0)][_type]
-	draw_rect(Rect2(-22.0, -60.0, 44.0, 60.0), couleur)
-	draw_rect(Rect2(-24.0, -70.0, 48.0, 12.0), Color(0.85, 0.1, 0.1))
+	var en_elan: bool = _etat == Etat.ELAN
+	var progression: float = clampf(_temps / maxf(_duree, 0.01), 0.0, 1.0) if en_elan else 0.0
+	var accroupi: float = 0.0
+	if en_elan and _type == Lancer.Type.TIR_TENDU:
+		accroupi = 6.0 * progression
+	draw_set_transform(Vector2(0.0, -30.0 + accroupi), 0.0, Vector2(_orientation, 1.0))
+
+	if en_elan:
+		var aura: Color = AURA[_type]
+		draw_circle(Vector2(0.0, -6.0), 38.0 + 6.0 * sin(_temps_anim * 30.0), Color(aura, 0.25 + 0.3 * progression))
+
+	# Queue en spirale.
+	var queue := PackedVector2Array()
+	for k: int in 14:
+		var t: float = k / 13.0
+		queue.append(Vector2(-14.0 - 22.0 * t, 14.0 - 30.0 * t) + Vector2(cos(t * 7.0), sin(t * 7.0)) * 6.0 * t)
+	draw_polyline(queue, Dessin.CONTOUR, 9.0, true)
+	draw_polyline(queue, FOURRURE, 5.0, true)
+	# Jambes.
+	var pas: float = sin(_temps_anim * 14.0) * 6.0 if _etat == Etat.DEPLACEMENT else 0.0
+	Dessin.membre(self, Vector2(-7.0, 16.0), Vector2(-9.0 + pas, 30.0 - accroupi), 8.0, FOURRURE)
+	Dessin.membre(self, Vector2(7.0, 16.0), Vector2(9.0 - pas, 30.0 - accroupi), 8.0, FOURRURE)
+	# Salopette.
+	Dessin.polygone(self, Dessin.rectangle_arrondi(Vector2(0.0, 6.0), Vector2(30.0, 26.0), 9.0), SALOPETTE)
+	draw_circle(Vector2(-7.0, -2.0), 2.5, Color(1.0, 0.85, 0.3))
+	draw_circle(Vector2(7.0, -2.0), 2.5, Color(1.0, 0.85, 0.3))
+	# Bras selon l'Élan : derrière l'épaule (Arc), tiré en arrière à l'horizontale (Tir tendu), au-dessus de la tête (Lob).
+	var main_lancer := Vector2(16.0, 8.0)
+	var main_autre := Vector2(-15.0, 10.0)
+	if en_elan:
+		match _type:
+			Lancer.Type.ARC:
+				main_lancer = Vector2(-10.0, -30.0).lerp(Vector2(-18.0, -26.0), progression)
+			Lancer.Type.TIR_TENDU:
+				main_lancer = Vector2(-26.0 - 6.0 * progression, -4.0)
+				main_autre = Vector2(22.0, -6.0)
+			Lancer.Type.LOB:
+				main_lancer = Vector2(4.0, -46.0)
+				main_autre = Vector2(-6.0, -46.0)
+	Dessin.membre(self, Vector2(-9.0, -4.0), main_autre, 7.0, FOURRURE)
+	Dessin.membre(self, Vector2(9.0, -4.0), main_lancer, 7.0, FOURRURE)
+	if en_elan:
+		Dessin.banane(self, main_lancer + Vector2(0.0, -8.0), 26.0, -0.6)
+		draw_set_transform(Vector2(0.0, -30.0 + accroupi), 0.0, Vector2(_orientation, 1.0))
+	# Tête : oreilles, visage, yeux, casquette à visière vers l'avant avec un emblème banane.
+	Dessin.cercle(self, Vector2(-15.0, -20.0), 7.0, FOURRURE, 3.0)
+	Dessin.cercle(self, Vector2(15.0, -20.0), 7.0, FOURRURE, 3.0)
+	draw_circle(Vector2(-15.0, -20.0), 3.5, VISAGE)
+	draw_circle(Vector2(15.0, -20.0), 3.5, VISAGE)
+	Dessin.cercle(self, Vector2(0.0, -20.0), 14.0, FOURRURE)
+	Dessin.ellipse(self, Vector2(4.0, -16.0), Vector2(10.0, 8.0), VISAGE, 0.0)
+	draw_circle(Vector2(1.0, -21.0), 2.6, Dessin.CONTOUR)
+	draw_circle(Vector2(9.0, -21.0), 2.6, Dessin.CONTOUR)
+	draw_arc(Vector2(5.0, -13.0), 4.0, 0.2, PI - 0.2, 8, Dessin.CONTOUR, 2.0)
+	Dessin.polygone(self, PackedVector2Array([Vector2(-14.0, -28.0), Vector2(-10.0, -38.0), Vector2(8.0, -39.0), Vector2(14.0, -29.0), Vector2(24.0, -27.0), Vector2(23.0, -24.0), Vector2(-14.0, -25.0)]), CASQUETTE, 3.0)
+	Dessin.banane(self, Vector2(0.0, -32.0), 10.0, 0.0)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

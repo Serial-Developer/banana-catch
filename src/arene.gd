@@ -46,6 +46,21 @@ func _ajouter_plateforme(rect: Rect2, haute: bool) -> void:
 
 
 func _draw() -> void:
-	draw_rect(PRINCIPALE, Color(0.35, 0.3, 0.45))
+	# Plateforme principale : île flottante, herbe sur roche, dessous effilé.
+	var p: Rect2 = PRINCIPALE
+	var ile := PackedVector2Array([
+		p.position, Vector2(p.end.x, p.position.y), Vector2(p.end.x - 30.0, p.position.y + 60.0),
+		Vector2(p.end.x - 140.0, p.position.y + 120.0), Vector2(p.get_center().x + 60.0, p.position.y + 175.0),
+		Vector2(p.get_center().x - 80.0, p.position.y + 165.0), Vector2(p.position.x + 120.0, p.position.y + 110.0),
+		Vector2(p.position.x + 25.0, p.position.y + 55.0),
+	])
+	Dessin.polygone(self, ile, Color(0.42, 0.36, 0.5), 5.0)
+	for k: int in 7:
+		var x: float = p.position.x + 90.0 + k * 100.0
+		draw_line(Vector2(x, p.position.y + 40.0), Vector2(x + 30.0, p.position.y + 80.0 + (k % 3) * 15.0), Color(0.3, 0.25, 0.38), 4.0)
+	Dessin.polygone(self, Dessin.rectangle_arrondi(Vector2(p.get_center().x, p.position.y + 9.0), Vector2(p.size.x + 12.0, 22.0), 9.0), Color(0.35, 0.8, 0.4), 5.0)
+	draw_line(Vector2(p.position.x + 10.0, p.position.y + 3.0), Vector2(p.end.x - 10.0, p.position.y + 3.0), Color(0.6, 0.95, 0.6), 3.0)
+	# Plateformes hautes : dalles lumineuses traversables.
 	for rect: Rect2 in HAUTES:
-		draw_rect(rect, Color(0.5, 0.45, 0.6))
+		Dessin.polygone(self, Dessin.rectangle_arrondi(rect.get_center() + Vector2(0.0, 2.0), rect.size + Vector2(8.0, 8.0), 7.0), Color(0.55, 0.75, 1.0, 0.95), 4.0)
+		draw_line(rect.position + Vector2(10.0, 2.0), Vector2(rect.end.x - 10.0, rect.position.y + 2.0), Color(0.9, 0.97, 1.0), 3.0)
