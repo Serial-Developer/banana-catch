@@ -37,7 +37,7 @@ Une Banane qui touche le Joueur sans qu'il ait réussi d'Attrape ; elle augmente
 _Avoid_: Hit, dégât, touche
 
 **Échec**:
-Une Banane qui touche une Plateforme ou tombe dans le vide sans avoir été attrapée ni causé de Coup ; il coûte un Stock au Joueur.
+Une Banane qui touche la Plateforme principale ou tombe dans le vide sans avoir été attrapée ni causé de Coup ; il coûte un Stock au Joueur.
 _Avoid_: Drop, raté, banane perdue
 
 ## Lancers
@@ -104,5 +104,5 @@ Le terrain de jeu : une Plateforme principale flottante entourée de vide.
 _Avoid_: Niveau, stage, map
 
 **Plateforme**:
-Une surface de l'Arène sur laquelle le Joueur peut se tenir ; les Plateformes hautes sont traversables par le dessous.
+Une surface de l'Arène sur laquelle le Joueur peut se tenir ; les Plateformes hautes sont traversables par le Joueur par le dessous, et par les Bananes de tous côtés.
 _Avoid_: Sol, bloc

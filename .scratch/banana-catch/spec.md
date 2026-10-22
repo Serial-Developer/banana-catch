@@ -14,7 +14,7 @@ Un jeu Godot 4 jouable sur Mac, au clavier ou à la manette. Le Joueur évolue d
 
 - **Attrape** : le Joueur presse le bouton d'attrape et la Banane le touche pendant la Fenêtre d'attrape → Score +1.
 - **Coup** : la Banane touche le Joueur hors Fenêtre d'attrape → Pourcentage augmenté, Éjection, la Banane disparaît.
-- **Échec** : la Banane touche une Plateforme ou tombe dans le vide → perte d'un Stock.
+- **Échec** : la Banane touche la Plateforme principale ou tombe dans le vide (les Plateformes hautes sont traversées) → perte d'un Stock.
 
 La Partie dure tant qu'il reste des Stocks (3 au départ). La Cadence augmente avec le Score, et à partir de certains paliers plusieurs Bananes sont en vol simultanément. Les graphismes sont des formes vectorielles cartoon dessinées en code (contours épais, couleurs vives, particules d'impact), le son est fait d'effets synthétisés.
 
@@ -169,3 +169,4 @@ La Partie dure tant qu'il reste des Stocks (3 au départ). La Cadence augmente a
 - Le projet est vide : tout est à créer (projet Godot, carte d'entrées, lanceur de tests, script de lancement).
 - Les valeurs de réglage annoncées sont des points de départ. Prévoir une itération d'équilibrage en jouant une fois la boucle complète en place.
 - Ordre de réalisation suggéré : lanceur de tests et scène de Partie minimale (Arène + Joueur), puis Bananes et résolution, puis Pourcentage, Éjection et Stocks, puis le Singe et la progression, puis les écrans, puis le rendu et le son.
+- **Correction de règle (ticket 04)** : les Bananes **traversent les Plateformes hautes**. Un Échec a lieu seulement sur la Plateforme principale ou dans le vide. Avec la règle d'origine (« toute Plateforme »), les Lancers du Singe étaient souvent interceptés par une Plateforme haute : la sienne au départ, ou une autre sur la trajectoire d'un Lob. Le Joueur perdait alors des Stocks sans pouvoir rien faire. La règle « toute Banane non attrapée finit en Échec » reste vraie : une Banane qui traverse une Plateforme haute finit sur la principale ou dans le vide.

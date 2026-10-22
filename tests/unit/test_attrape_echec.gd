@@ -136,12 +136,16 @@ func test_une_banane_sur_la_plateforme_principale_est_un_echec_qui_coute_un_stoc
 	return ""
 
 
-func test_une_banane_sur_une_plateforme_haute_est_un_echec() -> String:
+func test_une_banane_traverse_une_plateforme_haute_puis_finit_en_echec_sur_la_principale() -> String:
 	await _partie_prete()
-	_lacher_loin_du_joueur(Arene.HAUTES[0].get_center().x)
+	var x: float = Arene.HAUTES[0].get_center().x
+	_lacher_loin_du_joueur(x)
+	await attendre_que(func() -> bool: return partie.positions_bananes().is_empty() or partie.positions_bananes()[0].y > Arene.HAUTES[0].end.y + 20.0, 2.0)
+	if not echecs.is_empty():
+		return "la Banane devrait traverser la Plateforme haute"
 	await secondes(1.0)
 	if echecs.size() != 1:
-		return "attendu 1 Échec sur la Plateforme haute"
+		return "attendu 1 Échec sur la Plateforme principale"
 	return ""
 
 

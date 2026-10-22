@@ -17,9 +17,13 @@ const FOND_DU_VIDE: float = 780.0
 var reglages: Reglages
 var graine: int = 1
 var meilleur_score: int = 0
+## Faux : le Singe reste immobile et ne lance rien (seuls les Lancers forcés envoient des Bananes).
+var singe_actif: bool = true
 
 var _rng := RandomNumberGenerator.new()
 var _joueur: Joueur
+var _singe: Singe
+var _temps_ecoule: float = 0.0
 var _bananes: Array[Banane] = []
 var _score: int = 0
 var _stocks: int = 0
@@ -48,6 +52,14 @@ func _ready() -> void:
 	_joueur.reglages = reglages
 	_joueur.position = Arene.POINT_APPARITION
 	add_child(_joueur)
+	_singe = Singe.new()
+	_singe.reglages = reglages
+	_singe.rng = _rng
+	_singe.actif = singe_actif
+	_singe.cible = func() -> Vector2: return _joueur.position + Vector2(0.0, -Joueur.TAILLE.y * 0.6)
+	_singe.peut_lancer = func() -> bool: return _bananes.size() < reglages.bananes_max_en_vol
+	_singe.lance.connect(forcer_lancer)
+	add_child(_singe)
 
 
 # --- État observable -------------------------------------------------------
@@ -62,6 +74,14 @@ func stocks() -> int:
 
 func terminee() -> bool:
 	return _terminee
+
+
+func temps_ecoule() -> float:
+	return _temps_ecoule
+
+
+func singe_position() -> Vector2:
+	return _singe.position
 
 
 func pourcentage() -> float:
@@ -127,6 +147,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if _terminee:
 		return
+	_temps_ecoule += delta
 	for banane: Banane in _bananes.duplicate():
 		if _terminee:
 			return
@@ -147,7 +168,7 @@ func _avancer_banane(banane: Banane, delta: float) -> void:
 		if banane.touche(point, _joueur.boite()) and (_joueur.peut_attraper() or not _joueur.invulnerable()):
 			touche_joueur = true
 			break
-		if not hors_jeu and (_touche_une_plateforme(banane, point) or point.y > FOND_DU_VIDE or not Arene.LIMITES.has_point(point)):
+		if not hors_jeu and (_touche_la_plateforme_principale(banane, point) or point.y > FOND_DU_VIDE or not Arene.LIMITES.has_point(point)):
 			hors_jeu = true
 	if touche_joueur and _joueur.peut_attraper():
 		_retirer(banane)
@@ -177,11 +198,9 @@ func _subir_coup(banane: Banane) -> void:
 	coup.emit(_pourcentage)
 
 
-func _touche_une_plateforme(banane: Banane, point: Vector2) -> bool:
-	for rect: Rect2 in Arene.plateformes():
-		if banane.touche(point, rect):
-			return true
-	return false
+## Seule la Plateforme principale arrête une Banane : les Plateformes hautes sont traversées.
+func _touche_la_plateforme_principale(banane: Banane, point: Vector2) -> bool:
+	return banane.touche(point, Arene.PRINCIPALE)
 
 
 func _retirer(banane: Banane) -> void:
@@ -204,5 +223,6 @@ func _terminer() -> void:
 	for banane: Banane in _bananes.duplicate():
 		_retirer(banane)
 	_joueur.set_physics_process(false)
+	_singe.actif = false
 	var record_battu: bool = _score > meilleur_score
 	fin_de_partie.emit(_score, record_battu)

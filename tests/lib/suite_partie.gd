@@ -6,8 +6,10 @@ const ACTIONS: Array[String] = ["move_left", "move_right", "down", "jump", "catc
 var partie: Partie
 
 
-func nouvelle_partie(reglages: Reglages = null, graine: int = 1, meilleur_score: int = 0) -> Partie:
+## Par défaut le Singe est inactif : seuls les Lancers forcés envoient des Bananes.
+func nouvelle_partie(reglages: Reglages = null, graine: int = 1, meilleur_score: int = 0, singe_actif: bool = false) -> Partie:
 	partie = Partie.creer(reglages, graine, meilleur_score)
+	partie.singe_actif = singe_actif
 	add_child(partie)
 	return partie
 

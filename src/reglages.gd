@@ -39,3 +39,29 @@ extends Resource
 
 @export_group("Stocks")
 @export var duree_invulnerabilite: float = 2.0
+
+@export_group("Singe")
+@export var singe_vitesse: float = 320.0
+## Pause entre la fin d'un Lancer et la décision suivante.
+@export var intervalle_lancers: float = 1.4
+## Nombre maximal de Bananes en vol (le Singe attend s'il est atteint).
+@export var bananes_max_en_vol: int = 1
+## Probabilités relatives de chaque type de Lancer.
+@export var poids_arc: float = 0.5
+@export var poids_tir_tendu: float = 0.25
+@export var poids_lob: float = 0.25
+
+@export_group("Lancers")
+@export var duree_elan_arc: float = 0.4
+@export var duree_elan_tir_tendu: float = 0.3
+@export var duree_elan_lob: float = 0.55
+## Temps de vol jusqu'à la cible : [min, max] en secondes.
+@export var temps_vol_arc: Vector2 = Vector2(0.9, 1.25)
+@export var temps_vol_lob: Vector2 = Vector2(1.8, 2.2)
+## Vitesse horizontale d'un Tir tendu (px/s) et temps de vol minimal.
+@export var vitesse_tir_tendu: float = 1000.0
+@export var temps_vol_min_tir_tendu: float = 0.25
+## Écart aléatoire maximal entre le point visé et le Joueur (px).
+@export var dispersion_arc: float = 24.0
+@export var dispersion_tir_tendu: float = 12.0
+@export var dispersion_lob: float = 32.0
