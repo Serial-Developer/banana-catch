@@ -9,6 +9,7 @@ signal echec
 signal reapparition
 signal stock_perdu(stocks_restants: int)
 signal fin_de_partie(score: int, record_battu: bool)
+signal pause_changee(en_pause: bool)
 
 const SCENE: PackedScene = preload("res://scenes/partie.tscn")
 ## Sous cette hauteur, une Banane est tombée dans le vide.
@@ -21,6 +22,10 @@ var meilleur_score: int = 0
 var singe_actif: bool = true
 
 var _rng := RandomNumberGenerator.new()
+## Contient tout ce qui se fige pendant la pause (Arène, Joueur, Singe, Bananes).
+var _monde := Node2D.new()
+var _en_pause: bool = false
+var _pause_pressee: bool = false
 var _joueur: Joueur
 var _singe: Singe
 var _temps_ecoule: float = 0.0
@@ -47,11 +52,13 @@ func _ready() -> void:
 	process_physics_priority = 10
 	_rng.seed = graine
 	_stocks = reglages.stocks_depart
-	add_child(Arene.new())
+	_monde.name = "Monde"
+	add_child(_monde)
+	_monde.add_child(Arene.new())
 	_joueur = Joueur.new()
 	_joueur.reglages = reglages
 	_joueur.position = Arene.POINT_APPARITION
-	add_child(_joueur)
+	_monde.add_child(_joueur)
 	_singe = Singe.new()
 	_singe.reglages = reglages
 	_singe.rng = _rng
@@ -60,7 +67,7 @@ func _ready() -> void:
 	_singe.peut_lancer = func() -> bool: return _bananes.size() < reglages.palier(_score).bananes_max
 	_singe.score = score
 	_singe.lance.connect(forcer_lancer)
-	add_child(_singe)
+	_monde.add_child(_singe)
 
 
 # --- État observable -------------------------------------------------------
@@ -75,6 +82,18 @@ func stocks() -> int:
 
 func terminee() -> bool:
 	return _terminee
+
+
+func en_pause() -> bool:
+	return _en_pause
+
+
+func mettre_en_pause(valeur: bool) -> void:
+	if valeur == _en_pause or (_terminee and valeur):
+		return
+	_en_pause = valeur
+	_monde.process_mode = Node.PROCESS_MODE_DISABLED if valeur else Node.PROCESS_MODE_INHERIT
+	pause_changee.emit(valeur)
 
 
 func temps_ecoule() -> float:
@@ -132,7 +151,7 @@ func forcer_lancer(p_lancer: Lancer) -> void:
 	banane.gravite = reglages.gravite_banane
 	banane.rayon = reglages.rayon_banane
 	_bananes.append(banane)
-	add_child(banane)
+	_monde.add_child(banane)
 	lancer.emit(p_lancer.type)
 
 
@@ -146,7 +165,11 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Règles ----------------------------------------------------------------
 
 func _physics_process(delta: float) -> void:
-	if _terminee:
+	var pause_pressee: bool = Input.is_action_pressed("pause")
+	if pause_pressee and not _pause_pressee:
+		mettre_en_pause(not _en_pause)
+	_pause_pressee = pause_pressee
+	if _terminee or _en_pause:
 		return
 	_temps_ecoule += delta
 	for banane: Banane in _bananes.duplicate():

@@ -6,7 +6,7 @@ config_version=5
 
 config/name="Banana Catch"
 config/description="Platformer d'arcade façon Smash : attraper les Bananes du Singe."
-run/main_scene="res://scenes/partie.tscn"
+run/main_scene="res://scenes/jeu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]

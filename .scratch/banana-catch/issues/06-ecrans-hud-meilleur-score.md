@@ -1,6 +1,6 @@
 # 06 : Écrans, HUD, pause et Meilleur score
 
-Status: ready-for-agent
+Status: done
 Blocked by: 03
 Spec: ../spec.md (user stories 45 à 50)
 
@@ -25,7 +25,7 @@ Créer le parcours complet : écran titre, Partie avec HUD et pause, écran de f
 
 ## Critères d'acceptation
 
-- [ ] Tests qui vérifient que :
+- [x] Tests qui vérifient que :
   - le signal Fin de Partie indique si le Meilleur score transmis au démarrage est battu ;
   - la pause fige les Bananes en vol et le temps de la Fenêtre d'attrape.
 - [ ] Vérification manuelle :
@@ -34,3 +34,22 @@ Créer le parcours complet : écran titre, Partie avec HUD et pause, écran de f
   - le Pourcentage du HUD change de couleur en montant.
 
 ## Comments
+
+### Compte rendu (agent, 2026-10-22)
+
+**Fait**
+- Scène principale `scenes/jeu.tscn` (`Jeu`) : écran titre (Meilleur score et contrôles), puis Partie avec HUD, pause superposée (Reprendre, Quitter), puis écran de fin (Score, Meilleur score, « Nouveau meilleur score ! », Rejouer, Titre). Navigation au clavier et à la manette par le focus des boutons.
+- HUD (`Hud`) : il ne fait que lire l'état de la Partie. Pourcentage en gros, dont la couleur passe progressivement du blanc au rouge entre 0 et 150 %, icônes de Stocks et Score.
+- Pause dans la Partie (`en_pause()`, `mettre_en_pause()`, signal `pause_changee`, action `pause`) : tout ce qui se fige (Arène, Joueur, Singe, Bananes) est regroupé dans un nœud « Monde », désactivé pendant la pause.
+- Meilleur score : il est lu dans `user://meilleur_score.cfg` par `Jeu` et transmis à la Partie. `Jeu` le sauvegarde à la réception de `fin_de_partie` si le record est battu. La Partie n'écrit jamais sur le disque.
+- Outil `./tools/godot.sh capture <dossier>` : lance le jeu avec affichage, joue un scénario (titre, Partie, pause, fin) et enregistre des captures. Je l'ai utilisé pour vérifier les écrans.
+
+**Décisions**
+- Égaler le Meilleur score ne le bat pas : il faut le dépasser strictement. Un test le vérifie.
+- L'écran de fin apparaît 1,2 s après la Fin de Partie, pour laisser voir le dernier Échec.
+- La police est celle de Godot par défaut, sans fichier externe.
+
+**À vérifier à la main**
+- [ ] Le parcours titre → Partie → fin → Rejouer → titre, au clavier et à la manette.
+- [ ] Le Meilleur score est conservé après un redémarrage du jeu.
+- [ ] La couleur du Pourcentage dans le HUD change bien en montant.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage : ./tools/godot.sh jeu | tests | editeur | verifier-demarrage
+# Usage : ./tools/godot.sh jeu | tests | editeur | verifier-demarrage | capture <dossier>
 # Le binaire Godot 4.7.2 est pris dans ffta-remake par défaut ; GODOT_BIN permet d'en indiquer un autre.
 set -euo pipefail
 RACINE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -32,5 +32,6 @@ case "${1:-jeu}" in
   editeur) exec "$GODOT_BIN" --editor --path "$RACINE" ;;
   tests) importer; executer_et_scanner "$GODOT_BIN" --headless --fixed-fps 60 --path "$RACINE" -s res://tests/run_tests.gd ;;
   verifier-demarrage) importer; executer_et_scanner "$GODOT_BIN" --headless --fixed-fps 60 --path "$RACINE" --quit-after 300 ;;
-  *) echo "Usage : $0 jeu | tests | editeur | verifier-demarrage" >&2; exit 2 ;;
+  capture) importer; DOSSIER_CAPTURES="${2:?dossier de sortie}" executer_et_scanner "$GODOT_BIN" --path "$RACINE" -s res://tools/capture.gd ;;
+  *) echo "Usage : $0 jeu | tests | editeur | verifier-demarrage | capture <dossier>" >&2; exit 2 ;;
 esac
