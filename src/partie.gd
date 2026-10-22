@@ -57,7 +57,8 @@ func _ready() -> void:
 	_singe.rng = _rng
 	_singe.actif = singe_actif
 	_singe.cible = func() -> Vector2: return _joueur.position + Vector2(0.0, -Joueur.TAILLE.y * 0.6)
-	_singe.peut_lancer = func() -> bool: return _bananes.size() < reglages.bananes_max_en_vol
+	_singe.peut_lancer = func() -> bool: return _bananes.size() < reglages.palier(_score).bananes_max
+	_singe.score = score
 	_singe.lance.connect(forcer_lancer)
 	add_child(_singe)
 

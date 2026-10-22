@@ -1,6 +1,6 @@
 # 05 : Progression : Cadence, Bananes simultanées, mélange des Lancers
 
-Status: ready-for-agent
+Status: done
 Blocked by: 04
 Spec: ../spec.md (user stories 42 à 44)
 
@@ -22,10 +22,33 @@ La difficulté monte avec le Score. La Cadence accélère, plusieurs Bananes peu
 
 ## Critères d'acceptation
 
-- [ ] Tests qui vérifient que :
+- [x] Tests qui vérifient que :
   - l'intervalle moyen entre Lancers est plus court à Score élevé qu'à Score 0 (Score injecté ou atteint par des Attrapes forcées) ;
   - à Score 0, il n'y a jamais plus d'une Banane en vol ;
   - au palier « 3 Bananes », on observe 3 Bananes en vol simultanément et jamais plus ;
   - la proportion de Tirs tendus et de Lobs est plus élevée au dernier palier qu'au premier, sur un grand échantillon avec une graine fixée.
 
 ## Comments
+
+### Compte rendu (agent, 2026-10-22)
+
+**Fait**
+- `Palier` (Resource) : score minimal, intervalle, nombre maximal de Bananes en vol, Lancers depuis une même position et poids de chaque type. La table `Reglages.paliers` contient :
+
+| Score | Intervalle | Bananes max | Lancers par position | Arc / Tir tendu / Lob |
+|---|---|---|---|---|
+| 0 | 1,4 s | 1 | 1 | 70 / 15 / 15 |
+| 10 | 1,0 s | 2 | 2 | 50 / 25 / 25 |
+| 25 | 0,45 s | 3 | 3 | 34 / 33 / 33 |
+
+- Au-delà du dernier Palier, l'intervalle diminue de 0,02 s par Attrape, jusqu'à 0,2 s au minimum (`Reglages.intervalle_lancers(score)`).
+- Le Singe consulte le Palier à chaque décision. Il ne lance pas tant que le maximum de Bananes en vol est atteint.
+- Helper de test `marquer(n)` : il fait atteindre un Score par de vraies Attrapes, et non par injection.
+- « Palier » est ajouté au glossaire.
+
+**Décisions**
+- J'ai ajouté le nombre de « Lancers depuis une même position » (rafale). Sans lui, chaque Lancer était précédé d'un déplacement du Singe, et le temps de trajet empêchait d'avoir plusieurs Bananes en vol, même avec un intervalle court.
+- L'intervalle du dernier Palier passe à 0,45 s, au lieu des 0,7 s envisagés, pour que 3 Bananes simultanées arrivent réellement.
+
+**À vérifier à la main**
+- La difficulté aux Paliers 10 et 25 : est-ce encore jouable ? Le plancher de 0,2 s est-il trop dur ? À ajuster au ticket 09.

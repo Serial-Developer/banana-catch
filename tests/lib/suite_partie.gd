@@ -68,3 +68,14 @@ func aller_vers(x: float) -> void:
 	await attendre_que(func() -> bool: return absf(partie.joueur_position().x - x) < 12.0, 5.0)
 	relacher(action)
 	await secondes(0.3)
+
+
+## Fait marquer `n` Attrapes au Joueur, en lâchant chaque Banane dans sa Fenêtre d'attrape ouverte.
+func marquer(n: int) -> void:
+	for i: int in n:
+		presser("catch")
+		await images(1)
+		partie.forcer_lancer(Lancer.new(Lancer.Type.ARC, partie.joueur_position() + Vector2(0.0, -32.0), Vector2.ZERO))
+		await images(1)
+		relacher("catch")
+		await images(1)

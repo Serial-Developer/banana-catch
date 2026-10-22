@@ -16,6 +16,8 @@ var rng: RandomNumberGenerator
 var cible: Callable
 ## Renvoie vrai si une nouvelle Banane peut être lancée.
 var peut_lancer: Callable
+## Renvoie le Score courant (règle la Cadence et le mélange des Lancers).
+var score: Callable
 var actif: bool = true
 
 var _etat: Etat = Etat.ATTENTE
@@ -26,11 +28,12 @@ var _arrivee := Vector2.ZERO
 var _hauteur_saut: float = 0.0
 var _type: Lancer.Type = Lancer.Type.ARC
 var _orientation: float = -1.0
+var _lancers_restants_ici: int = 0
 
 
 func _ready() -> void:
 	position = POINT_DEPART
-	_attendre(reglages.intervalle_lancers)
+	_attendre(reglages.intervalle_lancers(score.call()))
 
 
 func etat() -> Etat:
@@ -48,7 +51,11 @@ func _physics_process(delta: float) -> void:
 	match _etat:
 		Etat.ATTENTE:
 			if _temps >= _duree and peut_lancer.call():
-				_choisir_destination()
+				if _lancers_restants_ici > 0:
+					_preparer_lancer()
+				else:
+					_lancers_restants_ici = reglages.palier(score.call()).lancers_par_position
+					_choisir_destination()
 		Etat.DEPLACEMENT:
 			var s: float = clampf(_temps / _duree, 0.0, 1.0)
 			position = _depart.lerp(_arrivee, s) + Vector2(0.0, -_hauteur_saut * 4.0 * s * (1.0 - s))
@@ -58,7 +65,7 @@ func _physics_process(delta: float) -> void:
 			_orientation = signf(cible.call().x - position.x)
 			if _temps >= _duree:
 				lance.emit(_calculer_lancer())
-				_attendre(reglages.intervalle_lancers)
+				_attendre(reglages.intervalle_lancers(score.call()))
 
 
 func _attendre(duree: float) -> void:
@@ -82,7 +89,9 @@ func _choisir_destination() -> void:
 
 
 func _preparer_lancer() -> void:
-	position = _arrivee
+	if _etat == Etat.DEPLACEMENT:
+		position = _arrivee
+	_lancers_restants_ici -= 1
 	_type = _tirer_type()
 	_etat = Etat.ELAN
 	_temps = 0.0
@@ -90,7 +99,8 @@ func _preparer_lancer() -> void:
 
 
 func _tirer_type() -> Lancer.Type:
-	var poids: Array[float] = [reglages.poids_arc, reglages.poids_tir_tendu, reglages.poids_lob]
+	var palier: Palier = reglages.palier(score.call())
+	var poids: Array[float] = [palier.poids_arc, palier.poids_tir_tendu, palier.poids_lob]
 	var tirage: float = rng.randf() * (poids[0] + poids[1] + poids[2])
 	for type: int in poids.size():
 		if tirage < poids[type]:

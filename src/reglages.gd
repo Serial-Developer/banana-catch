@@ -42,14 +42,35 @@ extends Resource
 
 @export_group("Singe")
 @export var singe_vitesse: float = 320.0
-## Pause entre la fin d'un Lancer et la décision suivante.
-@export var intervalle_lancers: float = 1.4
-## Nombre maximal de Bananes en vol (le Singe attend s'il est atteint).
-@export var bananes_max_en_vol: int = 1
-## Probabilités relatives de chaque type de Lancer.
-@export var poids_arc: float = 0.5
-@export var poids_tir_tendu: float = 0.25
-@export var poids_lob: float = 0.25
+
+
+@export_group("Progression")
+## Paliers triés par Score croissant ; le dernier atteint s'applique.
+@export var paliers: Array[Palier] = [
+	Palier.creer(0, 1.4, 1, 1, 0.7, 0.15, 0.15),
+	Palier.creer(10, 1.0, 2, 2, 0.5, 0.25, 0.25),
+	Palier.creer(25, 0.45, 3, 3, 0.34, 0.33, 0.33),
+]
+## Au-delà du dernier palier, l'intervalle diminue de cette valeur par Attrape, jusqu'au plancher.
+@export var reduction_intervalle_par_attrape: float = 0.02
+@export var intervalle_plancher: float = 0.2
+
+
+func palier(score: int) -> Palier:
+	var courant: Palier = paliers[0]
+	for p: Palier in paliers:
+		if score >= p.score_min:
+			courant = p
+	return courant
+
+
+## Cadence : pause du Singe entre deux Lancers pour ce Score.
+func intervalle_lancers(score: int) -> float:
+	var p: Palier = palier(score)
+	if p != paliers[-1]:
+		return p.intervalle
+	var reduction: float = (score - p.score_min) * reduction_intervalle_par_attrape
+	return maxf(p.intervalle - reduction, intervalle_plancher)
 
 @export_group("Lancers")
 @export var duree_elan_arc: float = 0.4

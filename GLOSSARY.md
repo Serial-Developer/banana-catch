@@ -63,6 +63,10 @@ _Avoid_: Wind-up, préparation, télégraphe
 Le rythme auquel le Singe enchaîne ses Lancers, qui augmente avec le Score.
 _Avoid_: Fréquence, vitesse
 
+**Palier**:
+Un seuil de Score à partir duquel la Cadence, le nombre maximal de Bananes en vol et le mélange des Lancers changent.
+_Avoid_: Niveau, vague, difficulté
+
 ## Survie
 
 **Partie**:
